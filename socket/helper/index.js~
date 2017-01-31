@@ -1,0 +1,73 @@
+const 	modalHelper 			= require('./modal'),
+		NotificationService		= require('./service');
+
+module.exports = {
+	singleChatMessages : function(data, connectedSocket, cb) {
+		modalHelper.getUserDetails(data.userId, function(err, user){
+			if(connectedSocket[data.userTo]){
+				data.typeMessage = 'private' ;
+				data.profilePic = user.profilePic ;
+				connectedSocket[data.userTo].emit('message', data);
+				cb(null, "message Send Successfully");
+			}else{
+				modalHelper.getUserDetails(Service.dbHelper(data.userTo), function(err, toUser){
+					if(user){
+						data.typeMessage = "private" ;
+						data.profilePic = user.profilePic ;
+						NotificationService.androidNotification(toUser.deviceId, data, function(err, res) {
+							if(err) cb(err, null);
+							cb(null, res);
+						});  
+					}
+				});
+			}
+		});
+	},
+	groupChatMessages : function(data, connectedSocket, cb){
+		modalHelper.getGroupUsers(data.userTo, function(err, users){
+			var userDeviceIds = [], notificationData;
+			if(err) console.log("Execption raised in media else case >>>", err);
+			_.map(users, function(obj){
+				if(data.userId.toString() !== obj.user[0].toString()){
+					if( connectedSocket[obj.user[0]] ){
+						modalHelper.getGroupDetail(obj.groupId[0], function(err, group){
+							modalHelper.getUserDetails(data.userId, function(err, userRecords){
+								if(!group.isDeleted){
+									data.groupId = data.userTo || obj.groupId[0] ;
+									data.typeMessage = "group" ;
+									data.profilePic = group.groupPic ;
+									data.fromuser = userRecords.name;
+									delete data.userTo ;
+									delete data.userId ;
+									connectedSocket[obj.user[0]].emit('groupMsg', data);
+									cb(null, "Group message send successfully");
+								}
+							});
+						});
+					}else{
+						modalHelper.getGroupDetail(obj.groupId[0], function(err, group){
+							modalHelper.getUserDetails(obj.user[0], function(err, user){
+								modalHelper.getUserDetails(data.userId, function(err, sender){
+									if(!group.isDeleted){
+										data.groupId = data.userTo || obj.groupId[0] ;
+										data.typeMessage = "group" ;
+										data.profilePic = group.groupPic ;
+										data.fromuser  = sender.name ;
+										delete data.userTo ;
+										delete data.userId ;
+										notificationData = data ;
+										userDeviceIds.push(user.deviceId);
+									}
+								});
+							});
+						});
+					}
+				}
+			});
+			NotificationService.androidNotification(userDeviceIds, notificationData, function(err, res) {
+				if(err) cb(err, null); 
+				if(res) cb(null, res);
+			}); 
+		});
+	}
+};

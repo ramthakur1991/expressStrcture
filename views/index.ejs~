@@ -10,7 +10,6 @@
     <title>Express app strcture</title>
     
     <!--STYLES-->
-    
     <!--STYLES END-->
     
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -26,7 +25,6 @@
     <div id="app">Sample express app strcture with MVC patten with Socket.io connection.</div>
     
     <!--SCRIPTS-->
-    
     <!--SCRIPTS END-->
   </body>
   
