@@ -1,6 +1,7 @@
 var User = require('../models/User'),
 	Service = require('../service') ,
 	_ = require('lodash');
+	
 module.exports = {
 	register : function(req, res){
 		var obj = new User();
